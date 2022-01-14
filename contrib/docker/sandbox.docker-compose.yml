@@ -1,0 +1,117 @@
+version: "3"
+x-logging-json: &my-logging
+  logging:
+    driver: json-file
+    options:
+      max-size: "10M"
+      max-file: "5"
+services:
+  consul:
+    <<: *my-logging
+    network_mode: "default"
+    build:
+      context: ./images/consul
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    container_name: terraform-template-consul-sandbox
+    hostname: consul
+    ports:
+      - "8500:8500"
+    environment:
+      CONSUL_HTTP_TOKEN: "${CONSUL_HTTP_TOKEN:-root}"
+      CONSUL_HTTP_ADDR: http://0.0.0.0:8500
+      CONSUL_LOCAL_CONFIG: >
+        {
+          "acl" : {
+            "tokens": {
+              "master" : "root"
+            },
+            "default_policy" : "deny",
+            "enable_token_persistence" : true,
+            "enabled" : true
+          },
+          "connect" : {
+            "enabled" : true
+          },
+          "log_level":"INFO",
+          "log_file":"/consul/logs/consul.log",
+          "data_dir": "/var/consul/data",
+          "bootstrap": true,
+          "server": true,
+          "primary_datacenter": "us-west-1",
+          "datacenter": "us-west-1"
+        }
+    expose:
+      - 8300
+      - 8400
+      - 8500
+      - 8600
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O" , "/dev/null", "http://0.0.0.0:8500/v1/status/leader"]
+      interval: 30s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+    entrypoint: ""
+    command:
+      - /bin/sh
+      - -cex
+      - |
+        mkdir -p /consul/logs
+        chown "consul:consul" /consul/logs -R
+        docker-entrypoint.sh agent -server -client=0.0.0.0 -bind=0.0.0.0 -ui &
+        sleep 5 ;
+        consul acl policy create -name vault -rules @/consul/policies/vault.hcl
+        while ! $$(consul info > /dev/null &2>1); do echo "Trying to connect to consul"; sleep 5; done
+        consul members
+        while sleep 1000; do :; done
+  vault:
+    <<: *my-logging
+    image: vault:latest
+    container_name: terraform-template-vault-sandbox
+    restart: unless-stopped
+    network_mode: "default"
+    hostname: vault
+    expose:
+      - 8200
+    ports:
+      - "8200:8200"
+    links:
+      - consul:terraform-template-consul-sandbox
+    depends_on:
+      - consul
+    cap_add:
+      - IPC_LOCK
+    environment:
+      DBNAME: "${DBNAME:-sandbox}"
+      VAULT_DEV_ROOT_TOKEN_ID: "${VAULT_DEV_ROOT_TOKEN_ID:-root}"
+      VAULT_TOKEN: "${VAULT_TOKEN:-root}"
+      CONSUL_HTTP_TOKEN: "${CONSUL_HTTP_TOKEN:-root}"
+      VAULT_ADDR: "http://0.0.0.0:8200"
+      CONSUL_HTTP_ADDR: "http://consul:8500"
+      CONSUL_HTTP_SSL: "false"
+      VAULT_LOCAL_CONFIG: |
+        log_level = "INFO"
+        backend "consul" {
+          address = "consul:8500"
+          advertise_addr = "http://consul:8300"
+          scheme = "http"
+          token = "root"
+        }
+        disable_mlock = true
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O" , "/dev/null", "http://0.0.0.0:8200/v1/sys/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+    entrypoint: ""
+    command:
+      - /bin/sh
+      - -cex
+      - |
+        mkdir -p /vault/logs ;
+        docker-entrypoint.sh server -dev &
+        while ! $$(vault status &> /dev/null); do echo "Trying to connect to vault"; sleep 5; done
+        vault audit enable file file_path=/vault/logs/vault_audit.log
+        while sleep 1000; do :; done
