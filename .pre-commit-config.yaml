@@ -1,0 +1,78 @@
+repos:
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v4.0.1
+  hooks:
+      - id: check-added-large-files
+        description: prevents giant files from being committed.
+        args: [--maxkb=1024]
+      - id: mixed-line-ending
+        description: replaces or checks mixed line ending.
+        args: [--fix=lf]
+      - id: trailing-whitespace
+        description: trims trailing whitespace.
+        args: [--markdown-linebreak-ext=md]
+      - id: detect-private-key
+        description: detects the presence of private keys.
+        exclude: .gitleaks.toml
+      - id: check-merge-conflict
+        description: checks for files that contain merge conflict strings.
+      - id: fix-byte-order-marker
+        description: removes utf-8 byte order marker.
+      - id: check-case-conflict
+        description: checks for files that would conflict in case-insensitive filesystems.
+      - id: check-executables-have-shebangs
+        description: ensures that (non-binary) executables have a shebang.
+      - id: check-shebang-scripts-are-executable
+        description:  ensures that (non-binary) files with a shebang are executable
+      - id: check-symlinks
+        description: checks for symlinks which do not point to anything.
+      - id: destroyed-symlinks
+        description: detects symlinks which are changed to regular files with a content of a path which that symlink was pointing to.
+      - id: end-of-file-fixer
+        description:  ensures that a file is either empty, or ends with one newline.
+- repo: https://github.com/antonbabenko/pre-commit-terraform
+  rev: v1.58.0
+  hooks:
+      - id: terraform_fmt
+        description: Rewrites all Terraform configuration files to a canonical format.
+      - id: terraform_docs
+        description: Inserts input and output documentation into README.md (using terraform-docs).
+      - id: terraform_validate
+        description: Validates all Terraform configuration files.
+      - id: terraform_tflint
+        description: Validates all Terraform configuration files with TFLint.
+      - id: terragrunt_fmt
+        description: Rewrites all Terragrunt configuration files to a canonical format.
+      - id: terragrunt_validate
+        description: Validates all Terragrunt configuration files.
+      - id: terraform_tfsec
+        description: Static analysis of Terraform templates to spot potential security issues.
+      - id: checkov
+        name: Checkov
+        description: Runs checkov on Terraform templates.
+        verbose: true
+        args: [
+          "-d", ".",
+          "--skip-check", "CKV_DOCKER_2",
+          "--quiet",
+        ]
+        language: python
+        pass_filenames: false
+        always_run: false
+        files: \.tf$
+        exclude: \.terraform\/.*$
+        require_serial: true
+      - id: terrascan
+        name: terrascan
+        description: Runs terrascan on Terraform templates.
+        language: script
+        entry: /usr/local/bin/terrascan scan -d ./ --non-recursive -i terraform
+        files: \.tf$
+        exclude: \.terraform\/.*$
+        require_serial: true
+       # Lint: Dockerfile
+- repo: https://github.com/hadolint/hadolint.git
+  rev: v2.8.0
+  hooks:
+      - id: hadolint-docker
+        entry: hadolint/hadolint:v2.8.0 hadolint
