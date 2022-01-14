@@ -1,0 +1,67 @@
+
+*
+!*/
+#  ────────────────────────────────────────────────────────────────────
+!/modules/**/*.tf
+!/modules/**/Makefile
+!/modules/**/.env.bash
+#  ────────────────────────────────────────────────────────────────────
+!/**/.gitkeep
+!/**/README.md
+#  ────────────────────────────────────────────────────────────────────
+!/.cspell/*.txt
+!/.vscode/**
+!/.devcontainer/**
+!/.gitlab/CODEOWNERS
+!/.gitlab/issue_templates/*.md
+!/.gitlab/workflows/*.yml
+!/.github/CODEOWNERS
+!/.github/issue_templates/*.yml
+!/.github/workflows/*.yml
+!/.gp/**
+#  ────────────────────────────────────────────────────────────────────
+!/docs/**/*.md
+#  ────────────────────────────────────────────────────────────────────
+!/examples/*.tf
+!/examples/*.tfvars
+!/examples/.bash.env
+!/examples/Makefile
+!/examples/**/*.tf
+!/examples/**/.bash.env
+!/examples/**/*.tfvars
+!/examples/**/Makefile
+#  ────────────────────────────────────────────────────────────────────
+!/contrib/docker/*docker-compose.yml
+!/contrib/docker/*docker-compose.yaml
+!/contrib/docker/**/*docker-compose.yml
+!/contrib/docker/**/*docker-compose.yaml
+!/contrib/docker/images/**/Dockerfile
+!/contrib/docker/images/**/*.hcl
+!/contrib/docker/images/**/*.yml
+!/contrib/docker/images/**/*.yaml
+!/contrib/docker/images/**/*.toml
+!/contrib/docker/images/**/*.json
+#  ────────────────────────────────────────────────────────────────────
+!/.editorconfig
+!/.gitignore
+!/.dockerignore
+!/.gitpod.yml
+!/.golangci.yml
+!/.gitlab-ci.yml
+!/.markdownlintignore
+!/.revive.toml
+!/.stignore
+!/.versionrc
+!/.pre-commit-config.yaml
+!/.bash.env
+!/LICENSE
+!/README.md
+!/commitlint.config.js
+!/contrib
+!/Justfile
+!/Makefile
+!/Vagrantfile
+!/docker-bake.hcl
+!/CONTRIBUTING.md
+!/CHANGELOG.md
+!/*.tf
